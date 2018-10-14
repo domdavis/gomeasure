@@ -2,6 +2,8 @@ package gomeasure_test
 
 import (
 	"fmt"
+	"testing"
+	"time"
 
 	"github.com/domdavis/gomeasure"
 )
@@ -32,4 +34,11 @@ func ExampleMetrics_Record() {
 
 	// Output:
 	// Min: 2ns, Max: 12ns, Mean: 7ns, Total: 32ns, Sigma: 3ns, Samples: 5
+}
+
+func BenchmarkMetrics_Record(b *testing.B) {
+	m := gomeasure.EmptyMetrics()
+	for n := 0; n < b.N; n++ {
+		m.Record(time.Duration(n))
+	}
 }

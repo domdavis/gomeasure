@@ -2,6 +2,7 @@ package gomeasure_test
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/domdavis/gomeasure"
 )
@@ -58,4 +59,11 @@ func ExampleTimer_Duration() {
 
 	fmt.Println(mid != end)
 	// Output: true
+}
+
+func BenchmarkTime(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		t := gomeasure.Action("action")
+		t.Stop()
+	}
 }

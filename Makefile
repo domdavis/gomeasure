@@ -1,4 +1,9 @@
+ci: setup all
+
 all: clean vet lint test
+
+setup:
+	go get -u golang.org/x/lint/golint
 
 go-env:
 ifndef GOPATH

@@ -1,5 +1,7 @@
 # Measurement and Instrumentation package for Go
 
+[![Build Status](https://travis-ci.com/domdavis/gomeasure.svg?branch=master)](https://travis-ci.com/domdavis/gomeasure)
+
 `gomeasure` is designed to provide fine grained (μs) timings for arbitrary
 actions which can be reported on during runtime. Actions are named, and metrics
 for all actions of the same name can be queried at any time.

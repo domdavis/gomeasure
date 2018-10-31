@@ -1,9 +1,11 @@
-ci: setup all
+ci: setup all report
 
 all: clean vet lint test
 
 setup:
 	go get -u golang.org/x/lint/golint
+	go get golang.org/x/tools/cmd/cover
+    go get github.com/mattn/goveralls
 
 go-env:
 ifndef GOPATH
@@ -28,4 +30,7 @@ doc: go-env
 profile: go-env
 	go test --cpuprofile cpu.prof --memprofile mem.prof -bench .
 
+report:
+	go test -v -covermode=count -coverprofile=coverage.out
+	$(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 

@@ -32,5 +32,5 @@ profile: go-env
 
 report:
 	go test -v -covermode=count -coverprofile=coverage.out
-	$(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 

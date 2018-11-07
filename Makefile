@@ -12,7 +12,7 @@ build:
 
 clean:
 	go clean
-	rm c.out coverage.out cpu.prof mem.prof
+	rm -f c.out coverage.out cpu.prof mem.prof
 
 vet:
 	go vet ./...

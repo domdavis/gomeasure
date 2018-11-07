@@ -1,11 +1,16 @@
 all: clean build vet lint test
 
-ci: env all report
+ci: env setup all report
 
 env:
 ifndef COVERALLS_TOKEN
 	$(error COVERALLS_TOKEN is not set)
 endif
+
+setup:
+	go get -u golang.org/x/lint/golint
+	go get golang.org/x/tools/cmd/cover
+	go get github.com/mattn/goveralls
 
 build:
 	go build

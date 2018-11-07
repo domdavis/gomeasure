@@ -1,36 +1,36 @@
-ci: setup all report
+all: clean build vet lint test
 
-all: clean vet lint test
+ci: env all report
 
-setup:
-	go get -u golang.org/x/lint/golint
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/mattn/goveralls
-
-go-env:
-ifndef GOPATH
-	$(error GOPATH is not set)
+env:
+ifndef COVERALLS_TOKEN
+	$(error COVERALLS_TOKEN is not set)
 endif
 
-clean: go-env
+build:
+	go build
+
+clean:
 	go clean
+	rm c.out coverage.out cpu.prof mem.prof
 
-vet: go-env
-	go vet `go list ./...`
+vet:
+	go vet ./...
 
-lint: go-env
-	golint `go list ./...`
+lint:
+	golint ./...
 
-test: go-env
-	go test --cover -p 1 `go list ./...`
+test:
+	go test -coverprofile c.out ./...
 
-doc: go-env
+doc:
 	godoc --http=:6060
 
-profile: go-env
+profile:
 	go test --cpuprofile cpu.prof --memprofile mem.prof -bench .
 
 report:
 	go test -v -covermode=count -coverprofile=coverage.out
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+
 

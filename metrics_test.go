@@ -36,6 +36,18 @@ func ExampleMetrics_Record() {
 	// Min: 2ns, Max: 12ns, Mean: 7ns, Total: 32ns, Sigma: 3ns, Samples: 5
 }
 
+func ExampleMetrics_Copy() {
+	m := gomeasure.EmptyMetrics()
+	m.Record(1)
+	c := m.Copy()
+	c.Record(2)
+
+	fmt.Println(m.Samples(), c.Samples())
+
+	// Output:
+	// 1 2
+}
+
 func BenchmarkMetrics_Record(b *testing.B) {
 	m := gomeasure.EmptyMetrics()
 	for n := 0; n < b.N; n++ {

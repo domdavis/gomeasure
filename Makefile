@@ -17,7 +17,8 @@ build:
 
 clean:
 	go clean
-	rm -f c.out coverage.out cpu.prof mem.prof
+	rm -f *.out *.out *.prof *.prof
+	go mod tidy
 
 vet:
 	go vet ./...
@@ -26,16 +27,18 @@ lint:
 	golint ./...
 
 test:
-	go test -coverprofile c.out ./...
+	go test -v -covermode=count -coverprofile=coverage.out
 
 doc:
 	godoc --http=:6060
+
+check: test
+	go tool cover -html=coverage.out
 
 profile:
 	go test --cpuprofile cpu.prof --memprofile mem.prof -bench .
 
 report:
-	go test -v -covermode=count -coverprofile=coverage.out
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
 
 

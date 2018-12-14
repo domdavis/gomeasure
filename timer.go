@@ -1,9 +1,6 @@
 package gomeasure
 
-import (
-	"sync"
-	"time"
-)
+import "time"
 
 // Timer is the interface implemented by types that can time the duration of an
 // action. Timers are started on creation and stopped on a call to Stop.
@@ -27,27 +24,8 @@ type timer struct {
 	start  time.Time
 	end    time.Time
 
-	dead     bool
-	listener *listener
-}
-
-var l = &listener{}
-var once sync.Once
-
-// Action returns a running Timer to measure an action. Multiple Timers can be
-// can be created for any given action, representing multiple instances of that
-// action. These timers can be concurrent.
-func Action(action string) Timer {
-	once.Do(func() {
-		l.listen()
-	})
-
-	return &timer{action: action, start: time.Now(), listener: l}
-}
-
-// Report the Metrics for an action.
-func Report(action string) Metrics {
-	return l.read(action)
+	dead    bool
+	actions *actions
 }
 
 func (t *timer) Stop() {
@@ -57,7 +35,7 @@ func (t *timer) Stop() {
 
 	t.dead = true
 	t.end = time.Now()
-	t.listener.write(t)
+	t.actions.record(t)
 }
 
 func (t *timer) Action() string {

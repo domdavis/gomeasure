@@ -1,3 +1,5 @@
+GO111MODULE=on
+
 all: clean build vet lint test
 
 ci: env setup all report

@@ -1,51 +1,10 @@
 package gomeasure
 
 import (
-	"fmt"
 	"math"
+	"sync"
 	"time"
 )
-
-// Metrics are used to record the cumulative statistics for a set of actions.
-type Metrics interface {
-	// Min returns the shortest duration required to perform an action in this
-	// set. If no actions have been recorded then the duration will be 0.
-	Min() time.Duration
-
-	// Max returns the longest duration required to perform an action in this
-	// set. If no actions have been recorded then the duration will be 0.
-	Max() time.Duration
-
-	// Mean is the average duration required to perform actions in this set. If
-	// no actions have been recorded then the duration will be 0.
-	Mean() time.Duration
-
-	// Total is the cumulative duration spent performing actions in this set. If
-	// no actions have been recorded then the duration will be 0.
-	Total() time.Duration
-
-	// Sigma is the standard deviation of durations for actions in this set. If
-	// no actions have been recorded the duration will be 0, however, it is also
-	// possible to have a variance of 0 if actions have be recorded, but with no
-	Sigma() time.Duration
-
-	// Samples is the total number of actions that have been recorded against
-	// this set.
-	Samples() int
-
-	// Record a timed action against this set of statistics, adding its data to
-	// the set of actions. Metrics are recorded using Welford's Algorithm as
-	// described on the Wikipedia page for Algorithms for Calculating Variance
-	// (https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance).
-	Record(duration time.Duration)
-
-	// Copy this Metrics type into a new Metrics type occupying a different
-	// memory address.
-	Copy() Metrics
-
-	// String returns a human readable version of a Metrics type.
-	String() string
-}
 
 type metrics struct {
 	min     time.Duration
@@ -55,13 +14,14 @@ type metrics struct {
 	m2      time.Duration
 	sigma   time.Duration
 	samples int
+
+	lock sync.RWMutex
 }
 
-const format = "Min: %s, Max: %s, Mean: %s, Total: %s, Sigma: %s, Samples: %d"
 
-// NewMetrics returns a set of metrics based off the given timer. The sample
+// newMetrics returns a set of metrics based off the given timer. The sample
 // size for the returned metrics will be 1.
-func NewMetrics(timer Timer) Metrics {
+func newMetrics(timer Timer) *metrics {
 	duration := timer.Duration()
 	return &metrics{
 		min:     duration,
@@ -74,36 +34,8 @@ func NewMetrics(timer Timer) Metrics {
 	}
 }
 
-// EmptyMetrics returns a new, empty set of metrics with no samples recorded.
-func EmptyMetrics() Metrics {
-	return &metrics{}
-}
-
-func (m *metrics) Min() time.Duration {
-	return m.min
-}
-
-func (m *metrics) Max() time.Duration {
-	return m.max
-}
-
-func (m *metrics) Mean() time.Duration {
-	return m.mean
-}
-
-func (m *metrics) Total() time.Duration {
-	return m.total
-}
-
-func (m *metrics) Sigma() time.Duration {
-	return m.sqrt(m.average(m.m2))
-}
-
-func (m *metrics) Samples() int {
-	return m.samples
-}
-
-func (m *metrics) Record(duration time.Duration) {
+func (m *metrics) record(duration time.Duration) {
+	m.lock.Lock()
 	m.total += duration
 	m.samples++
 
@@ -111,6 +43,7 @@ func (m *metrics) Record(duration time.Duration) {
 	m.mean += m.average(d1)
 	d2 := duration - m.mean
 	m.m2 += d1 * d2
+	m.sigma = m.sqrt(m.average(m.m2))
 
 	if m.min == 0 || duration < m.min {
 		m.min = duration
@@ -119,16 +52,8 @@ func (m *metrics) Record(duration time.Duration) {
 	if m.max < duration {
 		m.max = duration
 	}
-}
 
-func (m *metrics) Copy() Metrics {
-	c := *m
-	return &c
-}
-
-func (m *metrics) String() string {
-	return fmt.Sprintf(
-		format, m.min, m.max, m.mean, m.total, m.Sigma(), m.samples)
+	m.lock.Unlock()
 }
 
 func (m *metrics) average(duration time.Duration) time.Duration {
@@ -141,4 +66,20 @@ func (m *metrics) average(duration time.Duration) time.Duration {
 
 func (m *metrics) sqrt(duration time.Duration) time.Duration {
 	return time.Duration(math.Sqrt(float64(duration)))
+}
+
+func (m *metrics) stats(action string) Stats {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	return Stats{
+		Action: action,
+		Created: time.Now(),
+		Min: m.min,
+		Max: m.max,
+		Mean: m.mean,
+		Total: m.total,
+		Sigma: m.sigma,
+		Samples: m.samples,
+	}
 }

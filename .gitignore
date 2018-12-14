@@ -1,4 +1,4 @@
-c.out
 coverage.out
 cpu.prof
 mem.prof
+gomeasure.test

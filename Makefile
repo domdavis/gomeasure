@@ -17,7 +17,7 @@ build:
 
 clean:
 	go clean
-	rm -f *.out *.out *.prof *.prof
+	rm -f *.out *.out *.prof *.prof gomeasure.test
 	go mod tidy
 
 vet:

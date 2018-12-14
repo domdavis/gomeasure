@@ -23,14 +23,31 @@ Recording an action is simply a case of:
 t := gomeasure.Action("my action")
 // Do something
 t.Stop()
-``` 
-
-A set of metrics can then be retrieved using the same name:
-
-```
-m := gomeasure.Report("my action")
 ```
 
-The returned metrics provide timings as `time.Duration`, which provides ns
+A set of Stats can then be retrieved using the same name:
+
+```
+s := gomeasure.Report("my action")
+```
+
+The returned Stats provide timings as `time.Duration`, which provides ns
 results, however, the overhead for starting and stopping a timer is ~750ns
 making the results accurate to μs granularity.
+
+A full report on all actions being measured is provided using:
+
+```
+r := gomeasure.Snapshot()
+```
+
+## Actions
+
+Segregated sets of actions can be created if required:
+
+```
+a := gomeasure.NewActions()
+t := a.TimerFor("my action")
+t.Stop()
+fmt.Println(a.Snapshot())
+```

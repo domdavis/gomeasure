@@ -1,4 +1,4 @@
-all: clean build vet lint test
+all: clean build test vet lint
 
 ci: env setup all report
 
@@ -32,13 +32,15 @@ test:
 doc:
 	godoc --http=:6060
 
-check: test
-	go tool cover -html=coverage.out
-
 profile:
 	go test --cpuprofile cpu.prof --memprofile mem.prof -bench .
 
 report:
+ifndef COVERALLS_TOKEN
+	go test -coverprofile=coverage.out
+	go tool cover -html=coverage.out
+else
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+endif
 
 
